@@ -1,4 +1,4 @@
-const App = () => {
+const App = ({counter}) => {
   const course = {name: 'Half Stack application development',
   parts: [{ name: 'Fundamentals of React', exercises: 10} , 
   { name: 'Using props to pass data', exercises:7}, 
@@ -9,19 +9,20 @@ const App = () => {
       <Header course={course} />
       <Content course = {course}/>
       <Total course = {course}/>
+      <p>Count {counter}</p>
     </div>
   )
 }
 
-const Header = (props) => {
+const Header = ({course}) => {
   return (
-    <h1>{props.course.name}</h1>
+    <h1>{course.name}</h1>
   )
 }
 
-const Content = (props) => {
+const Content = ({course}) => {
   const content = [];
-  props.course.parts.forEach(part => {
+  course.parts.forEach(part => {
     content.push(<Part part = {part}/>);
   })
   return (
@@ -32,9 +33,9 @@ const Content = (props) => {
   )
 }
 
-const Total = (props) =>{
+const Total = ({course}) =>{
   let sum = 0;
-  props.course.parts.forEach(part => {
+  course.parts.forEach(part => {
     sum += part.exercises;
   })
   return(
@@ -42,9 +43,9 @@ const Total = (props) =>{
   )
 }
 
-const Part = (props) =>{
+const Part = ({part}) =>{
   return(
-    <p>{props.part.name} {props.part.exercises}</p>
+    <p>{part.name} {part.exercises}</p>
   )
 }
 

@@ -22,7 +22,7 @@ const Header = (props) => {
 const Content = (props) => {
   const content = [];
   props.courseParts.forEach(part => {
-    content.push(<p key={Math.random()}>{part.name} {part.exercises}</p>);
+    content.push(<Part coursePart = {part}/>);
   })
   return (
     <>
@@ -39,6 +39,12 @@ const Total = (props) =>{
   })
   return(
     <p>Number of exercises {sum}</p>
+  )
+}
+
+const Part = (props) =>{
+  return(
+    <p>{props.coursePart.name} {props.coursePart.exercises}</p>
   )
 }
 

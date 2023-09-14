@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import personsService from './services/persons'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -8,8 +9,8 @@ const App = () => {
   const [nameFilter, setNameFilter] = useState('')
 
   useEffect(()=>{
-      axios.get("http://localhost:3001/persons").then((res)=>{
-        setPersons(persons.concat(res.data))
+      personsService.getAll().then((allPersons)=>{
+        setPersons(persons.concat(allPersons))
       })
   }, [])
 
@@ -29,15 +30,35 @@ const App = () => {
 
   const saveToPhonebook = (event) => {
     event.preventDefault()
-
-    if (persons.some(person => person.name == newName)) {
-      alert(`${newName} is already added to phonebook`)
-      return
+    const personAlreadyInBook = persons.find(person => person.name == newName);
+    if (personAlreadyInBook !== undefined) {
+      const update = window.confirm(`${newName} is already added to phonebook. Do you want to replace the current number?`)
+      if(!update)
+        return
+      else{
+        personsService.update({...personAlreadyInBook, number: newNumber}).then((updatedPerson) => {
+          setPersons(persons.map(person => person.id !== updatedPerson.id? person : updatedPerson))
+        })
+        return
+      }  
     }
-
-    setPersons(persons.concat({ name: newName, number: newNumber, id: persons.length +1}))
+    const newPerson = { name: newName, number: newNumber }
+    console.log(newPerson)
+    personsService.create(newPerson).then(createdPerson => {
+      console.log(createdPerson)
+      setPersons(persons.concat(createdPerson))
+    })
+    
     setNewName("")
     setNewNumber("")
+  }
+
+  const deleteEntry = (personTodelete) => {
+    window.confirm(`Delete ${personTodelete.name}?`)
+    personsService.deleteEntry(personTodelete.id).then(deletedPerson =>{
+      console.log(deletedPerson)
+      setPersons(persons.filter(person => person.id !== personTodelete.id))
+    }).catch(()=>console.log("Something went wrong"))
   }
 
   return (
@@ -45,15 +66,15 @@ const App = () => {
       <h2>Phonebook</h2>
       <Filter nameFilter={nameFilter} handleOnChangeNameFilter={handleOnChangeNameFilter}/>
       <PersonForm newName={newName} newNumber={newNumber} handleOnChangeName={handleOnChangeName} handleOnChangeNumber={handleOnChangeNumber} saveToPhonebook={saveToPhonebook}/>
-      <Numbers nameFilter={nameFilter} persons={persons} />
+      <Numbers nameFilter={nameFilter} persons={persons} deleteEntry ={deleteEntry}/>
     </div>
   )
 }
 
-const Numbers = ({ nameFilter, persons }) => {
+const Numbers = ({ nameFilter, persons, deleteEntry }) => {
   const filteredPersons = persons.filter(person => person.name.includes(nameFilter))
   return (
-    filteredPersons.map(person => <Person person={person} key={person.id}></Person>)
+    filteredPersons.map(person => <Person person={person} key={person.id} deleteEntry ={deleteEntry}></Person>)
   )
 }
 
@@ -85,6 +106,8 @@ const PersonForm = ({newName, newNumber, handleOnChangeName, handleOnChangeNumbe
     )
 }
 
-const Person = ({ person }) => <div key={person.name}>{person.name}: {person.number}</div>
+const Person = ({ person, deleteEntry }) => <div key={person.name}>{person.name}: {person.number}
+<button onClick={()=>deleteEntry(person)}>delete</button>
+</div>
 
 export default App

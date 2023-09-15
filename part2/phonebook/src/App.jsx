@@ -6,11 +6,12 @@ const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
+  const [notification, setNotification] = useState(null)
   const [nameFilter, setNameFilter] = useState('')
 
   useEffect(()=>{
       personsService.getAll().then((allPersons)=>{
-        setPersons(persons.concat(allPersons))
+        setPersons(allPersons)
       })
   }, [])
 
@@ -46,6 +47,9 @@ const App = () => {
     console.log(newPerson)
     personsService.create(newPerson).then(createdPerson => {
       console.log(createdPerson)
+      setNotification({message: `Added ${createdPerson.name}`, color: 'green'});
+      
+      setInterval(()=>setNotification(null),3000);
       setPersons(persons.concat(createdPerson))
     })
     
@@ -58,18 +62,39 @@ const App = () => {
     personsService.deleteEntry(personTodelete.id).then(deletedPerson =>{
       console.log(deletedPerson)
       setPersons(persons.filter(person => person.id !== personTodelete.id))
-    }).catch(()=>console.log("Something went wrong"))
+    }).catch(()=>{
+      setNotification({message: `Information of ${personTodelete.name} has already been removed from server`, color: 'red'});
+      setInterval(()=>setNotification(null),3000);
+    })
   }
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification notification = {notification}/>
       <Filter nameFilter={nameFilter} handleOnChangeNameFilter={handleOnChangeNameFilter}/>
       <PersonForm newName={newName} newNumber={newNumber} handleOnChangeName={handleOnChangeName} handleOnChangeNumber={handleOnChangeNumber} saveToPhonebook={saveToPhonebook}/>
       <Numbers nameFilter={nameFilter} persons={persons} deleteEntry ={deleteEntry}/>
     </div>
   )
 }
+
+const Notification = ({notification}) => {
+  console.log(notification)
+  if(notification === null)
+    return null
+  const color = notification.color
+  const notificationStyle = {
+    color: `${color}`,
+    backgroundColor: 'gainsboro',
+    border: `2px solid ${color}`,
+    padding: '10px'
+  }
+
+  return(
+    <h1 style = {notificationStyle}>{notification.message}</h1>
+  )
+} 
 
 const Numbers = ({ nameFilter, persons, deleteEntry }) => {
   const filteredPersons = persons.filter(person => person.name.includes(nameFilter))

@@ -6,6 +6,7 @@ const App = () => {
   const [notes, setNotes] = useState([])
   const [newNote, setNewNote] = useState('a new note')
   const [showAll, setShowAll] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
 
  
   const hook =()=>{
@@ -19,17 +20,19 @@ const App = () => {
     const changedNote = {...note, important: !note.important}
 
     noteService.update(id, changedNote).then(updatedNote =>{
+      setErrorMessage("")
       setNotes(notes.map(n=>n.id!== id? n : updatedNote))
     }).catch(err => {
-      alert(`the note '${note.content}' was already deleted from the server`)
+      setErrorMessage(`Note '${note.content}' was already removed from server`)
       setNotes(notes.filter(n => n.id !== id))
     })
   }
 
   const addNote = (event) => {
     event.preventDefault()
-    if(newNote === "")
+    if(newNote === ""){
       return
+    }
 
     let noteObject = {
       content: newNote,
@@ -61,6 +64,7 @@ const App = () => {
   return (
     <div>
       <h1>Notes</h1>
+      <Notification message={errorMessage}/>
       <button onClick = {()=>setShowAll(!showAll)}>{showAll?"Show only important":"Show all"}</button>
       <ul>
         {notesToShow.map(note =>
@@ -71,8 +75,34 @@ const App = () => {
         <input value={newNote} onChange={handleNoteChange}/>
         <button type="submit">Save</button>
       </form>
+      <Footer />
     </div>
   )
 }
 
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className='error'>
+      {message}
+    </div>
+  )
+}
+
+const Footer = () => {
+  const footerStyle = {
+    color: 'green',
+    fontStyle: 'italic',
+    fontSize: 16
+  }
+
+  return(
+    <div style={footerStyle}><br/>
+      <em>Note app, Department of Computer Science, University of Helsinki</em>
+    </div>
+  )
+}
 export default App
